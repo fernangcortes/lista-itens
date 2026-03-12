@@ -27,17 +27,6 @@
     <meta property="twitter:description" content="Crie e gerencie listas de equipamentos e itens para produção audiovisual com ajuda de IA." />
     <meta property="twitter:image" content="https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?q=80&w=1200&auto=format&fit=crop" />
   </head>
-<script>
-  window.addEventListener('error', function (e) {
-    document.body.innerHTML = '<pre style="white-space:pre-wrap;color:#fff;background:#b00020;padding:16px;">Erro: ' + (e.message || e.error?.message || e.toString()) + '\\n' + (e.filename || '') + ':' + (e.lineno || '') + '</pre>';
-
-});
- window.addEventListener('unhandledrejection', function (e) {
- const reason = e.reason && e.reason.message ? e.reason.message : JSON.stringify(e.reason);
- document.body.innerHTML = '<pre style="white-space:pre-wrap;color:#fff;background:#b00020;padding:16px;">Unhandled Rejection: ' + reason + '</pre>';
- });
- console.log('Client error overlay enabled');
-</script>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
