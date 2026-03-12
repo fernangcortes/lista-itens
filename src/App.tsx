@@ -331,7 +331,7 @@ export default function App() {
                         
                         <div className="flex items-center gap-4">
                           <img src={editItemData.imageUrl || item.imageUrl} className="w-16 h-16 object-cover rounded border" alt="preview" />
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-2">
                             <label className="cursor-pointer text-xs bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1.5 rounded hover:bg-blue-100 flex items-center gap-1">
                               <Upload size={14}/> Upload
                               <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setEditItemData({...editItemData, imageUrl: url}))} />
@@ -348,6 +348,14 @@ export default function App() {
                             >
                               {isGeneratingImage ? <Loader2 size={14} className="animate-spin" /> : <ImageIcon size={14}/>} IA
                             </button>
+                            <a 
+                              href={getGoogleImagesUrl(editItemData.name || item.name)} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs bg-green-50 text-green-600 border border-green-200 px-2 py-1.5 rounded hover:bg-green-100 flex items-center gap-1 transition"
+                            >
+                              <ExternalLink size={14}/> Google
+                            </a>
                           </div>
                         </div>
 
@@ -359,13 +367,13 @@ export default function App() {
                   ) : (
                     /* View Mode */
                     <div className="relative">
-                      <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition flex gap-2 print:hidden">
-                        <button onClick={() => { setEditingItemId(item.id); setEditItemData(item); }} className="p-1.5 bg-white/80 backdrop-blur rounded shadow-sm text-gray-600 hover:text-blue-600 border border-gray-200"><Edit2 size={16}/></button>
-                        <button onClick={() => deleteItem(item.id)} className="p-1.5 bg-white/80 backdrop-blur rounded shadow-sm text-gray-600 hover:text-red-600 border border-gray-200"><Trash2 size={16}/></button>
+                      <div className="absolute top-0 right-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition flex gap-2 print:hidden">
+                        <button onClick={() => { setEditingItemId(item.id); setEditItemData(item); }} className="p-2 bg-white/90 backdrop-blur rounded shadow-sm text-gray-600 hover:text-blue-600 border border-gray-200 active:bg-gray-100"><Edit2 size={18}/></button>
+                        <button onClick={() => deleteItem(item.id)} className="p-2 bg-white/90 backdrop-blur rounded shadow-sm text-gray-600 hover:text-red-600 border border-gray-200 active:bg-gray-100"><Trash2 size={18}/></button>
                       </div>
 
                       <h2 
-                        className="font-semibold mb-3"
+                        className="font-semibold mb-3 pr-20"
                         style={{ fontFamily: currentList.theme.itemTitleFont, fontSize: currentList.theme.itemTitleSize }}
                       >
                         {item.name}
