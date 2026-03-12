@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Printer, Plus, Image as ImageIcon, Search, Expand, X, Loader2, Upload, ExternalLink, Edit2, Trash2, Save, Palette, Wand2, List as ListIcon, ChevronDown } from 'lucide-react';
+import { Printer, Plus, Image as ImageIcon, Search, Expand, X, Loader2, Upload, ExternalLink, Edit2, Trash2, Save, Palette, Wand2, List as ListIcon, ChevronDown, Key } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 
 interface Theme {
@@ -81,11 +81,17 @@ export default function App() {
   const [aiCharLimit, setAiCharLimit] = useState(300);
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [userApiKey, setUserApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Persistence
   useEffect(() => {
     localStorage.setItem('production_lists', JSON.stringify(lists));
   }, [lists]);
+
+  useEffect(() => {
+    localStorage.setItem('gemini_api_key', userApiKey);
+  }, [userApiKey]);
 
   // History for Autocomplete
   const allHistoricalNames = Array.from(new Set(lists.flatMap(l => l.items.map(i => i.name)))).filter(Boolean);
@@ -121,17 +127,13 @@ export default function App() {
   // AI Functions
   const generateDescription = async (name: string, limit: number, setter: (desc: string) => void) => {
     if (!name) return alert("Preencha o nome do produto primeiro.");
+    if (!userApiKey) {
+      alert("Por favor, configure sua chave da API do Gemini nas Configurações.");
+      setIsSettingsOpen(true);
+      return;
+    }
     setIsGeneratingDesc(true);
     try {
-      // @ts-ignore
-      if (window.aistudio && !(await window.aistudio.hasSelectedApiKey())) {
-        // @ts-ignore
-        await window.aistudio.openSelectKey();
-      }
-      // @ts-ignore
-      const userApiKey = process.env.API_KEY;
-      if (!userApiKey) throw new Error("API Key not found.");
-      
       const ai = new GoogleGenAI({ apiKey: userApiKey });
       const prompt = `Escreva uma descrição técnica e justificativa de compra para o item de produção audiovisual: "${name}". A descrição DEVE ter no máximo ${limit} caracteres. Seja direto, profissional e explique por que é essencial no set de filmagem. Retorne APENAS o texto da descrição, sem aspas ou introduções.`;
       
@@ -143,23 +145,19 @@ export default function App() {
       setter(response.text?.trim() || '');
     } catch (error) {
       console.error(error);
-      alert("Erro ao gerar descrição com IA.");
+      alert("Erro ao gerar descrição com IA. Verifique sua API Key.");
     } finally {
       setIsGeneratingDesc(false);
     }
   };
 
   const generateImageWithAI = async (name: string, description: string): Promise<string | null> => {
+    if (!userApiKey) {
+      alert("Por favor, configure sua chave da API do Gemini nas Configurações.");
+      setIsSettingsOpen(true);
+      return null;
+    }
     try {
-      // @ts-ignore
-      if (window.aistudio && !(await window.aistudio.hasSelectedApiKey())) {
-        // @ts-ignore
-        await window.aistudio.openSelectKey();
-      }
-      // @ts-ignore
-      const userApiKey = process.env.API_KEY;
-      if (!userApiKey) throw new Error("API Key not found.");
-      
       const ai = new GoogleGenAI({ apiKey: userApiKey });
       const response = await ai.models.generateContent({
         model: 'gemini-3.1-flash-image-preview',
@@ -174,7 +172,7 @@ export default function App() {
       }
     } catch (error) {
       console.error(error);
-      alert("Erro ao gerar imagem com IA.");
+      alert("Erro ao gerar imagem com IA. Verifique sua API Key.");
     }
     return null;
   };
@@ -255,6 +253,13 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setIsSettingsOpen(true)}
+            className="flex items-center gap-2 text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-lg transition"
+            title="Configurar API Key"
+          >
+            <Key size={18} /> <span className="hidden sm:inline">API</span>
+          </button>
           <button 
             onClick={() => setIsThemePanelOpen(!isThemePanelOpen)}
             className="flex items-center gap-2 text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-lg transition"
@@ -626,6 +631,37 @@ export default function App() {
           <div className="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center">
             <button className="absolute -top-12 right-0 text-white hover:text-gray-300 transition bg-black/50 rounded-full p-2" onClick={() => setExpandedImage(null)}><X size={24} /></button>
             <img src={expandedImage} alt="Expanded view" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" onClick={e => e.stopPropagation()} referrerPolicy="no-referrer" />
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 print:hidden backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative">
+            <button onClick={() => setIsSettingsOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><X size={20}/></button>
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-800"><Key size={20}/> Configurações de IA</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Para usar os recursos de Inteligência Artificial, insira sua chave da API do Google Gemini. Ela ficará salva <strong>apenas no seu navegador</strong>.
+            </p>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Gemini API Key</label>
+              <input 
+                type="password" 
+                value={userApiKey}
+                onChange={e => setUserApiKey(e.target.value)}
+                placeholder="AIzaSy..."
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 text-gray-900"
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-1">
+                <ExternalLink size={14}/> Obter uma chave
+              </a>
+              <button onClick={() => setIsSettingsOpen(false)} className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition font-medium">
+                Salvar
+              </button>
+            </div>
           </div>
         </div>
       )}
