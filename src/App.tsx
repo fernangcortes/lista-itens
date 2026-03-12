@@ -53,8 +53,17 @@ const INITIAL_ITEMS: Item[] = [
 export default function App() {
   // State
   const [lists, setLists] = useState<List[]>(() => {
-    const saved = localStorage.getItem('production_lists');
-    if (saved) return JSON.parse(saved);
+    try {
+      const saved = localStorage.getItem('production_lists');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Erro ao ler do localStorage:", e);
+    }
     return [{ id: 'default', title: 'Pedido de Produção', items: INITIAL_ITEMS, theme: THEME_PRESETS[0], updatedAt: Date.now() }];
   });
   const [currentListId, setCurrentListId] = useState<string>(lists[0]?.id || 'default');
