@@ -1,0 +1,5 @@
+{
+  "name": "Pedido de Produção",
+  "description": "Lista de pedidos para a produção com busca e geração de imagens via IA.",
+  "requestFramePermissions": []
+}
